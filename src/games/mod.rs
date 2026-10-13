@@ -1,6 +1,7 @@
 mod ball;
 mod breakout;
 mod game2048;
+mod minesweeper;
 mod pong;
 mod snake;
 mod tetris;
@@ -61,5 +62,32 @@ pub const CATALOG: &[GameEntry] = &[
         music: None,
         ranking: Ranking::HighestScore,
         launch: || Box::new(game2048::Game2048::new()),
+    },
+    GameEntry {
+        id: "minesweeper-beginner",
+        title: "Minesweeper · Beginner",
+        description: "Clear the 9×9 field with 10 mines. The first dig is always safe.",
+        controls: "←↑↓→ move · space dig · f flag · mouse",
+        music: None,
+        ranking: Ranking::FastestTime,
+        launch: || Box::new(minesweeper::Minesweeper::new(&minesweeper::BEGINNER)),
+    },
+    GameEntry {
+        id: "minesweeper-intermediate",
+        title: "Minesweeper · Intermediate",
+        description: "Clear the 16×16 field with 40 mines. The first dig is always safe.",
+        controls: "←↑↓→ move · space dig · f flag · mouse",
+        music: None,
+        ranking: Ranking::FastestTime,
+        launch: || Box::new(minesweeper::Minesweeper::new(&minesweeper::INTERMEDIATE)),
+    },
+    GameEntry {
+        id: "minesweeper-expert",
+        title: "Minesweeper · Expert",
+        description: "Clear the 30×16 field with 99 mines. The first dig is always safe.",
+        controls: "←↑↓→ move · space dig · f flag · mouse",
+        music: None,
+        ranking: Ranking::FastestTime,
+        launch: || Box::new(minesweeper::Minesweeper::new(&minesweeper::EXPERT)),
     },
 ];
