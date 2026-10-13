@@ -1,8 +1,7 @@
 # terminal-games
 
-A tiny arcade for your terminal. Pick a game from a `gh`-style menu and play it
-with Unicode blocks, colors and NES-style chiptune sound synthesized on the fly —
-no audio files involved.
+A tiny arcade for your terminal. Pick a game from a menu and play it
+with Unicode blocks, colors and NES-style chiptune sound.
 
 ```
                      T E R M I N A L   G A M E S
