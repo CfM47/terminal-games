@@ -198,9 +198,13 @@ fn details_panel(item: Option<Item>, scores: &HighScores) -> Paragraph<'static> 
         Line::from(entry.description),
         Line::from(vec!["Controls  ".dark_gray(), entry.controls.into()]),
         Line::default(),
-        Line::from("High scores".yellow().bold()),
     ];
-    lines.extend(score_lines(scores.top(entry.id)));
+    if entry.ranked {
+        lines.push(Line::from("High scores".yellow().bold()));
+        lines.extend(score_lines(scores.top(entry.id)));
+    } else {
+        lines.push(Line::from("Unranked mode".dark_gray().italic()));
+    }
 
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })

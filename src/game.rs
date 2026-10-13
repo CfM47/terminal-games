@@ -16,6 +16,11 @@ pub trait Game {
     fn score(&self) -> u32;
     fn is_over(&self) -> bool;
 
+    /// Closing line for the game over screen, such as who won.
+    fn summary(&self) -> Option<String> {
+        None
+    }
+
     /// Playback speed of the background music relative to its written tempo.
     fn music_tempo(&self) -> f32 {
         1.0
@@ -28,5 +33,6 @@ pub struct GameEntry {
     pub description: &'static str,
     pub controls: &'static str,
     pub music: Option<&'static Tune>,
+    pub ranked: bool,
     pub launch: fn() -> Box<dyn Game>,
 }

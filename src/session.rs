@@ -22,7 +22,8 @@ pub enum SessionAction {
 }
 
 struct Outcome {
-    score: u32,
+    summary: Option<String>,
+    score: Option<u32>,
     rank: Option<usize>,
 }
 
@@ -128,17 +129,29 @@ impl Session {
 
     fn finish(&mut self, speaker: &Speaker, scores: &mut HighScores) {
         self.music = None;
-        let score = self.game.score();
-        let rank = scores.submit(self.entry.id, score);
-        speaker.play(if rank == Some(0) {
+        let score = self.entry.ranked.then(|| self.game.score());
+        let rank = score.and_then(|score| scores.submit(self.entry.id, score));
+        let celebrates = rank == Some(0) || !self.entry.ranked;
+        speaker.play(if celebrates {
             &tunes::NEW_RECORD
         } else {
             &tunes::GAME_OVER
         });
-        self.outcome = Some(Outcome { score, rank });
+        self.outcome = Some(Outcome {
+            summary: self.game.summary(),
+            score,
+            rank,
+        });
     }
 
     fn render_hud(&self, frame: &mut Frame, area: Rect, scores: &HighScores) {
+        frame.render_widget(
+            Line::from(self.entry.title.to_uppercase()).green().bold(),
+            area,
+        );
+        if !self.entry.ranked {
+            return;
+        }
         let best = scores
             .best(self.entry.id)
             .unwrap_or(0)
@@ -149,10 +162,6 @@ impl Session {
             "  Best ".dark_gray(),
             best.to_string().yellow().bold(),
         ]);
-        frame.render_widget(
-            Line::from(self.entry.title.to_uppercase()).green().bold(),
-            area,
-        );
         frame.render_widget(stats.right_aligned(), area);
     }
 
@@ -166,18 +175,23 @@ impl Session {
 impl Outcome {
     fn lines(&self) -> Vec<Line<'static>> {
         let verdict = match self.rank {
-            Some(0) => "New record!".yellow().bold(),
-            Some(rank) => format!("#{} on the board", rank + 1).yellow(),
-            None => "".into(),
+            Some(0) => Some("New record!".yellow().bold()),
+            Some(rank) => Some(format!("#{} on the board", rank + 1).yellow()),
+            None => None,
         };
-        vec![
-            Line::from("GAME OVER".red().bold()),
-            Line::default(),
-            Line::from(format!("Score {}", self.score)),
-            Line::from(verdict),
-            Line::default(),
-            Line::from("enter play again · esc menu".dark_gray()),
-        ]
+        let details = [
+            self.summary.clone().map(Line::from),
+            self.score.map(|score| Line::from(format!("Score {score}"))),
+            verdict.map(Line::from),
+        ];
+        [Line::from("GAME OVER".red().bold()), Line::default()]
+            .into_iter()
+            .chain(details.into_iter().flatten())
+            .chain([
+                Line::default(),
+                Line::from("enter play again · esc menu".dark_gray()),
+            ])
+            .collect()
     }
 }
 
