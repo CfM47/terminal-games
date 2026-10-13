@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    audio::{Speaker, tunes},
+    audio::{Music, Speaker, tunes},
     game::{Game, GameEntry},
     layout,
     scores::HighScores,
@@ -30,15 +30,17 @@ struct Outcome {
 pub struct Session {
     entry: &'static GameEntry,
     game: Box<dyn Game>,
+    music: Option<Music>,
     paused: bool,
     outcome: Option<Outcome>,
 }
 
 impl Session {
-    pub fn start(entry: &'static GameEntry) -> Self {
+    pub fn start(entry: &'static GameEntry, speaker: &Speaker) -> Self {
         Self {
             entry,
             game: (entry.launch)(),
+            music: entry.music.and_then(|tune| speaker.play_looped(tune)),
             paused: false,
             outcome: None,
         }
@@ -48,10 +50,10 @@ impl Session {
         match key {
             KeyCode::Esc => return SessionAction::Exit,
             KeyCode::Enter | KeyCode::Char('r') if self.is_finished() => {
-                *self = Self::start(self.entry);
+                *self = Self::start(self.entry, speaker);
             }
             _ if self.is_finished() => {}
-            KeyCode::Char('p') => self.paused = !self.paused,
+            KeyCode::Char('p') => self.toggle_pause(),
             _ if self.paused => {}
             _ => self.game.handle_key(key, speaker),
         }
@@ -70,20 +72,28 @@ impl Session {
 
     pub fn render(&self, frame: &mut Frame, area: Rect, scores: &HighScores) {
         let playfield = self.game.size();
-        let size = Size::new(playfield.width, playfield.height + 2);
+        let footer = self.footer();
+        let width = playfield.width.max(footer.width() as u16);
+        let size = Size::new(width, playfield.height + 2);
         if !layout::fits(area, size) {
             render_too_small(frame, area, size);
             return;
         }
 
-        let [hud, board, footer] = layout::centered(area, size).layout(&Layout::vertical([
-            Constraint::Length(1),
-            Constraint::Length(playfield.height),
-            Constraint::Length(1),
-        ]));
-        self.render_hud(frame, hud, scores);
+        let [hud_row, board_row, footer_row] =
+            layout::centered(area, size).layout(&Layout::vertical([
+                Constraint::Length(1),
+                Constraint::Length(playfield.height),
+                Constraint::Length(1),
+            ]));
+        let board = layout::centered(board_row, playfield);
+        self.render_hud(
+            frame,
+            layout::centered(hud_row, Size::new(playfield.width, 1)),
+            scores,
+        );
         self.game.render(frame, board);
-        frame.render_widget(self.footer(), footer);
+        frame.render_widget(footer, footer_row);
 
         if let Some(outcome) = &self.outcome {
             render_popup(frame, board, outcome.lines());
@@ -96,7 +106,19 @@ impl Session {
         self.outcome.is_some()
     }
 
+    fn toggle_pause(&mut self) {
+        self.paused = !self.paused;
+        if let Some(music) = &self.music {
+            if self.paused {
+                music.pause()
+            } else {
+                music.resume()
+            }
+        }
+    }
+
     fn finish(&mut self, speaker: &Speaker, scores: &mut HighScores) {
+        self.music = None;
         let score = self.game.score();
         let rank = scores.submit(self.entry.id, score);
         speaker.play(if rank == Some(0) {

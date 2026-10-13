@@ -7,5 +7,6 @@ pub const CATALOG: &[GameEntry] = &[GameEntry {
     title: "Snake",
     description: "Eat, grow, and don't bite yourself. Gets faster with every bite.",
     controls: "←↑↓→ / wasd move",
+    music: None,
     launch: || Box::new(snake::Snake::new()),
 }];

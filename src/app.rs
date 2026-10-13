@@ -70,7 +70,9 @@ impl App {
         match &mut self.screen {
             Screen::Menu => match self.menu.handle_key(key.code, &self.speaker) {
                 MenuAction::Stay => {}
-                MenuAction::Launch(entry) => self.screen = Screen::Playing(Session::start(entry)),
+                MenuAction::Launch(entry) => {
+                    self.screen = Screen::Playing(Session::start(entry, &self.speaker))
+                }
                 MenuAction::Quit => self.running = false,
             },
             Screen::Playing(session) => match session.handle_key(key.code, &self.speaker) {

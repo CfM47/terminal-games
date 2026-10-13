@@ -1,6 +1,6 @@
 use std::num::NonZero;
 
-use rodio::{DeviceSinkBuilder, MixerDeviceSink, buffer::SamplesBuffer};
+use rodio::{DeviceSinkBuilder, MixerDeviceSink, Player, Source, buffer::SamplesBuffer};
 
 const SAMPLE_RATE: NonZero<u32> = NonZero::new(44_100).unwrap();
 const MONO: NonZero<u16> = NonZero::new(1).unwrap();
@@ -59,18 +59,17 @@ impl Note {
 
     fn samples(self, duty: Duty, volume: f32) -> impl Iterator<Item = f32> {
         let count = SAMPLE_RATE.get() * self.millis / 1000;
+        let audible = count * 7 / 8;
         (0..count).map(move |index| match self.frequency {
-            None => 0.0,
-            Some(frequency) => {
-                let phase = (index as f32 * frequency / SAMPLE_RATE.get() as f32).fract();
-                if phase < duty.ratio() {
-                    volume
-                } else {
-                    -volume
-                }
-            }
+            Some(frequency) if index < audible => volume * square_wave(index, frequency, duty),
+            _ => 0.0,
         })
     }
+}
+
+fn square_wave(index: u32, frequency: f32, duty: Duty) -> f32 {
+    let phase = (index as f32 * frequency / SAMPLE_RATE.get() as f32).fract();
+    if phase < duty.ratio() { 1.0 } else { -1.0 }
 }
 
 pub struct Tune {
@@ -136,6 +135,21 @@ pub mod tunes {
     };
 }
 
+/// Looping background tune that stops when dropped.
+pub struct Music {
+    player: Player,
+}
+
+impl Music {
+    pub fn pause(&self) {
+        self.player.pause();
+    }
+
+    pub fn resume(&self) {
+        self.player.play();
+    }
+}
+
 /// Plays tunes on the default output device, staying silent when none is available.
 pub struct Speaker {
     sink: Option<MixerDeviceSink>,
@@ -154,5 +168,12 @@ impl Speaker {
         if let Some(sink) = &self.sink {
             sink.mixer().add(tune.synthesize());
         }
+    }
+
+    pub fn play_looped(&self, tune: &Tune) -> Option<Music> {
+        let sink = self.sink.as_ref()?;
+        let player = Player::connect_new(sink.mixer());
+        player.append(tune.synthesize().repeat_infinite());
+        Some(Music { player })
     }
 }

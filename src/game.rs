@@ -3,7 +3,7 @@ use std::time::Duration;
 use crossterm::event::KeyCode;
 use ratatui::{Frame, layout::Rect, layout::Size};
 
-use crate::audio::Speaker;
+use crate::audio::{Speaker, Tune};
 
 pub trait Game {
     /// Area the game needs to render its playfield.
@@ -20,5 +20,6 @@ pub struct GameEntry {
     pub title: &'static str,
     pub description: &'static str,
     pub controls: &'static str,
+    pub music: Option<&'static Tune>,
     pub launch: fn() -> Box<dyn Game>,
 }
