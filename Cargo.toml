@@ -2,6 +2,18 @@
 name = "terminal-games"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.89"
+description = "A tiny arcade for your terminal: Snake, Tetris, Breakout, Pong, 2048 and Minesweeper with NES-style chiptune sound"
+license = "MIT"
+repository = "https://github.com/CfM47/terminal-games"
+readme = "README.md"
+keywords = ["game", "terminal", "tui", "arcade", "tetris"]
+categories = ["games", "command-line-utilities"]
+include = ["src/**/*", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE"]
+
+[[bin]]
+name = "tgames"
+path = "src/main.rs"
 
 [dependencies]
 crossterm = "0.29.0"
