@@ -1,6 +1,6 @@
 use crate::audio::{Duty, Note, Tune, Voice, pitch::*};
 
-const EIGHTH: u32 = 125;
+const EIGHTH: u32 = 250;
 const KICK: f32 = 1_000.0;
 const SNARE: f32 = 6_000.0;
 const HAT: f32 = 30_000.0;
