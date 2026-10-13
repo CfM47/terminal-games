@@ -9,6 +9,8 @@ pub trait Game {
     /// Area the game needs to render its playfield.
     fn size(&self) -> Size;
     fn handle_key(&mut self, key: KeyCode, speaker: &Speaker);
+
+    fn handle_key_release(&mut self, _key: KeyCode) {}
     fn update(&mut self, elapsed: Duration, speaker: &Speaker);
     fn render(&self, frame: &mut Frame, area: Rect);
     fn score(&self) -> u32;

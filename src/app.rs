@@ -9,6 +9,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::{
     audio::Speaker,
     game::GameEntry,
+    input::ReleaseReporting,
     menu::{Menu, MenuAction},
     scores::HighScores,
     session::{Session, SessionAction},
@@ -41,6 +42,7 @@ impl App {
     }
 
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
+        let _release_reporting = ReleaseReporting::enable();
         let mut last_tick = Instant::now();
         while self.running {
             terminal.draw(|frame| self.render(frame))?;
@@ -53,9 +55,7 @@ impl App {
 
     fn handle_events(&mut self, deadline: Instant) -> io::Result<()> {
         while event::poll(deadline.saturating_duration_since(Instant::now()))? {
-            if let Event::Key(key) = event::read()?
-                && key.kind == KeyEventKind::Press
-            {
+            if let Event::Key(key) = event::read()? {
                 self.handle_key(key);
             }
         }
@@ -65,6 +65,12 @@ impl App {
     fn handle_key(&mut self, key: KeyEvent) {
         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
             self.running = false;
+            return;
+        }
+        if key.kind == KeyEventKind::Release {
+            if let Screen::Playing(session) = &mut self.screen {
+                session.handle_key_release(key.code);
+            }
             return;
         }
         match &mut self.screen {

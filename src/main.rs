@@ -2,6 +2,7 @@ mod app;
 mod audio;
 mod game;
 mod games;
+mod input;
 mod layout;
 mod menu;
 mod scores;

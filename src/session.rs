@@ -60,6 +60,12 @@ impl Session {
         SessionAction::Stay
     }
 
+    pub fn handle_key_release(&mut self, key: KeyCode) {
+        if !self.is_finished() {
+            self.game.handle_key_release(key);
+        }
+    }
+
     pub fn update(&mut self, elapsed: Duration, speaker: &Speaker, scores: &mut HighScores) {
         if self.paused || self.is_finished() {
             return;
