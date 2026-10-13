@@ -34,10 +34,13 @@ pub struct Speaker {
 
 impl Speaker {
     pub fn open() -> Self {
-        let sink = DeviceSinkBuilder::open_default_sink().ok().map(|mut sink| {
-            sink.log_on_drop(false);
-            sink
-        });
+        let sink = DeviceSinkBuilder::from_default_device()
+            .and_then(|builder| builder.with_error_callback(|_| {}).open_sink_or_fallback())
+            .ok()
+            .map(|mut sink| {
+                sink.log_on_drop(false);
+                sink
+            });
         Self { sink }
     }
 
