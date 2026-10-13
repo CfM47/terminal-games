@@ -30,6 +30,8 @@ const PREVIEW_HEIGHT: u16 = 4;
 const LOCK_DELAY: Duration = Duration::from_millis(500);
 const MAX_LOCK_RESETS: u8 = 15;
 const LINES_PER_LEVEL: u32 = 10;
+const MUSIC_SPEEDUP_PER_LEVEL: f32 = 0.06;
+const MAX_MUSIC_TEMPO: f32 = 1.5;
 const LINE_SCORES: [u32; 5] = [0, 100, 300, 500, 800];
 const WALL_KICKS: [(i16, i16); 6] = [(0, 0), (-1, 0), (1, 0), (0, -1), (-2, 0), (2, 0)];
 
@@ -256,6 +258,10 @@ impl Game for Tetris {
 
     fn is_over(&self) -> bool {
         self.topped_out
+    }
+
+    fn music_tempo(&self) -> f32 {
+        (1.0 + MUSIC_SPEEDUP_PER_LEVEL * (self.level() - 1) as f32).min(MAX_MUSIC_TEMPO)
     }
 }
 

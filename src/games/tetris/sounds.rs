@@ -1,6 +1,9 @@
 use crate::audio::{Duty, Note, Tune, Voice, pitch::*};
 
 const EIGHTH: u32 = 125;
+const KICK: f32 = 1_000.0;
+const SNARE: f32 = 6_000.0;
+const HAT: f32 = 30_000.0;
 
 const fn eighths(frequency: f32, count: u32) -> Note {
     Note::tone(frequency, count * EIGHTH)
@@ -18,8 +21,30 @@ const MELODY: &[Note] = &[
     eighths(C5, 2), eighths(A4, 2), eighths(A4, 4),
 ];
 
+#[rustfmt::skip]
+const BASS: &[Note] = &[
+    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1),
+    eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1),
+    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+];
+
+#[rustfmt::skip]
+const DRUMS: &[Note] = &[
+    eighths(KICK, 1), eighths(HAT, 1), eighths(SNARE, 1), eighths(HAT, 1),
+    eighths(KICK, 1), eighths(HAT, 1), eighths(SNARE, 1), eighths(HAT, 1),
+];
+
 pub const KOROBEINIKI: Tune = Tune {
-    voices: &[Voice::pulse(Duty::Quarter, 0.05, MELODY)],
+    voices: &[
+        Voice::pulse(Duty::Quarter, 0.05, MELODY),
+        Voice::triangle(0.09, BASS),
+        Voice::noise(0.035, DRUMS),
+    ],
 };
 
 pub const ROTATE: Tune = Tune {
