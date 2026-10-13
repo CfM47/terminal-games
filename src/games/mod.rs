@@ -1,3 +1,4 @@
+mod breakout;
 mod snake;
 mod tetris;
 
@@ -19,5 +20,13 @@ pub const CATALOG: &[GameEntry] = &[
         controls: "←→ move · ↑ z rotate · ↓ soft · space drop",
         music: Some(&tetris::MUSIC),
         launch: || Box::new(tetris::Tetris::new()),
+    },
+    GameEntry {
+        id: "breakout",
+        title: "Breakout",
+        description: "Bounce the ball off your paddle and smash the wall. Aim with the paddle's edges.",
+        controls: "←→ / ad move · space launch",
+        music: None,
+        launch: || Box::new(breakout::Breakout::new()),
     },
 ];
