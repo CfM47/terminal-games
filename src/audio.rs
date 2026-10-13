@@ -9,8 +9,12 @@ pub mod pitch {
     pub const C4: f32 = 261.63;
     pub const E4: f32 = 329.63;
     pub const G4: f32 = 392.00;
+    pub const A4: f32 = 440.00;
+    pub const B4: f32 = 493.88;
     pub const C5: f32 = 523.25;
+    pub const D5: f32 = 587.33;
     pub const E5: f32 = 659.25;
+    pub const F5: f32 = 698.46;
     pub const G5: f32 = 783.99;
     pub const A5: f32 = 880.00;
     pub const B5: f32 = 987.77;
