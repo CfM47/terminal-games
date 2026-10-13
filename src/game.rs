@@ -11,7 +11,7 @@ pub trait Game {
     fn handle_key(&mut self, key: KeyCode, speaker: &Speaker);
 
     fn handle_key_release(&mut self, _key: KeyCode) {}
-    fn update(&mut self, elapsed: Duration, speaker: &Speaker);
+    fn update(&mut self, _elapsed: Duration, _speaker: &Speaker) {}
     fn render(&self, frame: &mut Frame, area: Rect);
     fn score(&self) -> u32;
     fn is_over(&self) -> bool;
