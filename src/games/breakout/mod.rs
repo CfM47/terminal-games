@@ -1,8 +1,10 @@
-mod ball;
 mod sounds;
 mod wall;
 
-use std::time::Duration;
+use std::{
+    f32::consts::{FRAC_PI_2, FRAC_PI_3},
+    time::Duration,
+};
 
 use crossterm::event::KeyCode;
 use ratatui::{
@@ -14,10 +16,8 @@ use ratatui::{
     widgets::{Block, BorderType, Widget},
 };
 
-use self::{
-    ball::Ball,
-    wall::{BRICK_WIDTH, Wall},
-};
+use self::wall::{BRICK_WIDTH, Wall};
+use super::ball::Ball;
 use crate::{audio::Speaker, game::Game, input::HeldKeys};
 
 const COLUMNS: u16 = wall::COLUMNS as u16 * BRICK_WIDTH;
@@ -31,7 +31,8 @@ const BALL_SPEEDUP_PER_LEVEL: f32 = 2.0;
 const BALL_SPEEDUP_PER_HIT: f32 = 0.3;
 const MAX_BALL_SPEED: f32 = 28.0;
 const MAX_SERVE_ANGLE: f32 = 0.4;
-const MAX_STEP_CELLS: f32 = 0.25;
+const MAX_BOUNCE_ANGLE: f32 = FRAC_PI_3;
+const STRAIGHT_UP: f32 = -FRAC_PI_2;
 const LEFT_KEYS: [KeyCode; 2] = [KeyCode::Left, KeyCode::Char('a')];
 const RIGHT_KEYS: [KeyCode; 2] = [KeyCode::Right, KeyCode::Char('d')];
 
@@ -66,10 +67,10 @@ impl Breakout {
         if self.ball.is_some() {
             return;
         }
-        let angle = (fastrand::f32() * 2.0 - 1.0) * MAX_SERVE_ANGLE;
+        let angle = STRAIGHT_UP + (fastrand::f32() * 2.0 - 1.0) * MAX_SERVE_ANGLE;
         let speed = BASE_BALL_SPEED + BALL_SPEEDUP_PER_LEVEL * (self.level - 1) as f32;
         let height = f32::from(PADDLE_ROW) - 0.5;
-        self.ball = Some(Ball::launched(self.paddle_center(), height, speed, angle));
+        self.ball = Some(Ball::new(self.paddle_center(), height, speed, angle));
         speaker.play(&sounds::PADDLE);
     }
 
@@ -88,10 +89,8 @@ impl Breakout {
     }
 
     fn advance_ball(&mut self, ball: Ball, elapsed: Duration, speaker: &Speaker) -> Option<Ball> {
-        let (dx, dy) = ball.travel(elapsed.as_secs_f32());
-        let steps = (dx.abs().max(dy.abs()) / MAX_STEP_CELLS).ceil().max(1.0);
-        let step = elapsed.div_f32(steps);
-        (0..steps as u32).try_fold(ball, |ball, _| self.step_ball(ball, step, speaker))
+        ball.substeps(elapsed)
+            .try_fold(ball, |ball, step| self.step_ball(ball, step, speaker))
     }
 
     /// Moves the ball one small step, resolving each axis separately; returns `None` once it is lost.
@@ -116,9 +115,10 @@ impl Breakout {
         } else if let Some(points) = self.wall.strike(ball.x, y) {
             ball.bounce_vertically();
             self.score_brick(points, speaker);
-        } else if ball.is_falling() && self.paddle_catches(ball.x, ball.y, y) {
+        } else if ball.is_moving_down() && self.paddle_catches(ball.x, ball.y, y) {
             let offset = (ball.x - self.paddle_center()) / (f32::from(PADDLE_WIDTH) / 2.0);
-            ball.deflect(offset, BALL_SPEEDUP_PER_HIT, MAX_BALL_SPEED);
+            ball.aim(STRAIGHT_UP + offset.clamp(-1.0, 1.0) * MAX_BOUNCE_ANGLE);
+            ball.accelerate(BALL_SPEEDUP_PER_HIT, MAX_BALL_SPEED);
             speaker.play(&sounds::PADDLE);
         } else if y >= f32::from(ROWS) {
             return None;

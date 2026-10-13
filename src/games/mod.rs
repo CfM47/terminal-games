@@ -1,3 +1,4 @@
+mod ball;
 mod breakout;
 mod snake;
 mod tetris;
