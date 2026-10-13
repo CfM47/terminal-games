@@ -13,6 +13,11 @@ pub trait Game {
     fn render(&self, frame: &mut Frame, area: Rect);
     fn score(&self) -> u32;
     fn is_over(&self) -> bool;
+
+    /// Playback speed of the background music relative to its written tempo.
+    fn music_tempo(&self) -> f32 {
+        1.0
+    }
 }
 
 pub struct GameEntry {

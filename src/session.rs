@@ -65,6 +65,9 @@ impl Session {
             return;
         }
         self.game.update(elapsed, speaker);
+        if let Some(music) = &self.music {
+            music.set_tempo(self.game.music_tempo());
+        }
         if self.game.is_over() {
             self.finish(speaker, scores);
         }

@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    audio::{Duty, Note, Speaker, Tune, pitch},
+    audio::{Duty, Note, Speaker, Tune, Voice, pitch},
     game::Game,
 };
 
@@ -25,9 +25,11 @@ const FASTEST_INTERVAL: Duration = Duration::from_millis(60);
 const SPEEDUP_PER_FOOD: Duration = Duration::from_millis(4);
 
 const EAT: Tune = Tune {
-    duty: Duty::Quarter,
-    volume: 0.1,
-    notes: &[Note::tone(pitch::B5, 50), Note::tone(pitch::E6, 110)],
+    voices: &[Voice::pulse(
+        Duty::Quarter,
+        0.1,
+        &[Note::tone(pitch::B5, 50), Note::tone(pitch::E6, 110)],
+    )],
 };
 
 #[derive(Clone, Copy, PartialEq, Eq)]
