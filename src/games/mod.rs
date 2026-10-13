@@ -1,5 +1,6 @@
 mod ball;
 mod breakout;
+mod pong;
 mod snake;
 mod tetris;
 
@@ -32,5 +33,23 @@ pub const CATALOG: &[GameEntry] = &[
         music: None,
         ranked: true,
         launch: || Box::new(breakout::Breakout::new()),
+    },
+    GameEntry {
+        id: "pong",
+        title: "Pong",
+        description: "Beat the CPU to seven points. Every match you win, it gets faster and sharper.",
+        controls: "↑↓ / ws move",
+        music: None,
+        ranked: true,
+        launch: || Box::new(pong::Pong::solo()),
+    },
+    GameEntry {
+        id: "pong-versus",
+        title: "Pong · 2 players",
+        description: "Two players on one keyboard. First to seven points wins.",
+        controls: "P1 w s · P2 ↑ ↓",
+        music: None,
+        ranked: false,
+        launch: || Box::new(pong::Pong::versus()),
     },
 ];

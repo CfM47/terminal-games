@@ -47,6 +47,10 @@ impl Ball {
         self.heading_y > 0.0
     }
 
+    pub fn is_moving_right(&self) -> bool {
+        self.heading_x > 0.0
+    }
+
     pub fn bounce_horizontally(&mut self) {
         self.heading_x = -self.heading_x;
     }
