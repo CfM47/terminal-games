@@ -1,5 +1,6 @@
 mod ball;
 mod breakout;
+mod game2048;
 mod pong;
 mod snake;
 mod tetris;
@@ -51,5 +52,14 @@ pub const CATALOG: &[GameEntry] = &[
         music: None,
         ranked: false,
         launch: || Box::new(pong::Pong::versus()),
+    },
+    GameEntry {
+        id: "2048",
+        title: "2048",
+        description: "Slide the tiles and merge equal numbers. Reach 2048, then keep going.",
+        controls: "←↑↓→ / wasd slide",
+        music: None,
+        ranked: true,
+        launch: || Box::new(game2048::Game2048::new()),
     },
 ];
