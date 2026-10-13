@@ -25,6 +25,7 @@ const RAINBOW: [Color; 6] = [
 ];
 const WIDTH: u16 = 56;
 const DETAILS_HEIGHT: u16 = 12;
+const FIXED_HEIGHT: u16 = 4 + DETAILS_HEIGHT;
 
 pub enum MenuAction {
     Stay,
@@ -87,20 +88,22 @@ impl Menu {
 
     pub fn render(&self, frame: &mut Frame, area: Rect, scores: &HighScores) {
         let items = self.items();
-        let size = Size::new(WIDTH, 4 + items.len().max(1) as u16 + DETAILS_HEIGHT);
+        let room = area.height.saturating_sub(FIXED_HEIGHT).max(1);
+        let list_height = (items.len().max(1) as u16).min(room);
+        let size = Size::new(WIDTH, FIXED_HEIGHT + list_height);
         let [banner, _, prompt, list, _, details] =
             layout::centered(area, size).layout(&Layout::vertical([
                 Constraint::Length(1),
                 Constraint::Length(1),
                 Constraint::Length(1),
-                Constraint::Length(items.len().max(1) as u16),
+                Constraint::Length(list_height),
                 Constraint::Length(1),
                 Constraint::Length(DETAILS_HEIGHT),
             ]));
 
         frame.render_widget(rainbow_banner().centered(), banner);
         frame.render_widget(self.prompt_line(), prompt);
-        frame.render_widget(self.list(&items), list);
+        frame.render_widget(self.list(&items, list_height), list);
         frame.render_widget(details_panel(self.selected(), scores), details);
     }
 
@@ -152,13 +155,17 @@ impl Menu {
         Line::from(spans)
     }
 
-    fn list(&self, items: &[Item]) -> Paragraph<'static> {
+    /// Visible slice of the items, scrolled just enough to keep the cursor in view.
+    fn list(&self, items: &[Item], height: u16) -> Paragraph<'static> {
         if items.is_empty() {
             return Paragraph::new("  No results".dark_gray().italic());
         }
+        let first_visible = self.cursor.saturating_sub(usize::from(height) - 1);
         let lines: Vec<Line> = items
             .iter()
             .enumerate()
+            .skip(first_visible)
+            .take(usize::from(height))
             .map(|(index, item)| {
                 if index == self.cursor {
                     Line::from(format!("> {}", item.label())).cyan().bold()
