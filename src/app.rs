@@ -3,13 +3,18 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{DefaultTerminal, Frame};
+use crossterm::event::{
+    self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseEvent, MouseEventKind,
+};
+use ratatui::{
+    DefaultTerminal, Frame,
+    layout::{Position, Rect},
+};
 
 use crate::{
     audio::Speaker,
     game::GameEntry,
-    input::ReleaseReporting,
+    input::{MouseCapture, ReleaseReporting},
     menu::{Menu, MenuAction},
     scores::HighScores,
     session::{Session, SessionAction},
@@ -27,6 +32,7 @@ pub struct App {
     screen: Screen,
     scores: HighScores,
     speaker: Speaker,
+    viewport: Rect,
     running: bool,
 }
 
@@ -37,15 +43,17 @@ impl App {
             screen: Screen::Menu,
             scores: HighScores::load(),
             speaker: Speaker::open(),
+            viewport: Rect::default(),
             running: true,
         }
     }
 
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         let _release_reporting = ReleaseReporting::enable();
+        let _mouse_capture = MouseCapture::enable();
         let mut last_tick = Instant::now();
         while self.running {
-            terminal.draw(|frame| self.render(frame))?;
+            self.viewport = terminal.draw(|frame| self.render(frame))?.area;
             self.handle_events(last_tick + FRAME)?;
             self.update(last_tick.elapsed());
             last_tick = Instant::now();
@@ -55,8 +63,10 @@ impl App {
 
     fn handle_events(&mut self, deadline: Instant) -> io::Result<()> {
         while event::poll(deadline.saturating_duration_since(Instant::now()))? {
-            if let Event::Key(key) = event::read()? {
-                self.handle_key(key);
+            match event::read()? {
+                Event::Key(key) => self.handle_key(key),
+                Event::Mouse(mouse) => self.handle_mouse(mouse),
+                _ => {}
             }
         }
         Ok(())
@@ -85,6 +95,15 @@ impl App {
                 SessionAction::Stay => {}
                 SessionAction::Exit => self.screen = Screen::Menu,
             },
+        }
+    }
+
+    fn handle_mouse(&mut self, mouse: MouseEvent) {
+        if let (Screen::Playing(session), MouseEventKind::Down(button)) =
+            (&mut self.screen, mouse.kind)
+        {
+            let position = Position::new(mouse.column, mouse.row);
+            session.handle_click(position, button, self.viewport, &self.speaker);
         }
     }
 

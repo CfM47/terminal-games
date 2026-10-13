@@ -5,7 +5,7 @@ mod pong;
 mod snake;
 mod tetris;
 
-use crate::game::GameEntry;
+use crate::{game::GameEntry, scores::Ranking};
 
 pub const CATALOG: &[GameEntry] = &[
     GameEntry {
@@ -14,7 +14,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Eat, grow, and don't bite yourself. Gets faster with every bite.",
         controls: "←↑↓→ / wasd move",
         music: None,
-        ranked: true,
+        ranking: Ranking::HighestScore,
         launch: || Box::new(snake::Snake::new()),
     },
     GameEntry {
@@ -23,7 +23,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Stack falling pieces and clear lines. Every ten lines the drop speeds up.",
         controls: "←→ move · ↑ z rotate · ↓ soft · space drop",
         music: Some(&tetris::MUSIC),
-        ranked: true,
+        ranking: Ranking::HighestScore,
         launch: || Box::new(tetris::Tetris::new()),
     },
     GameEntry {
@@ -32,7 +32,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Bounce the ball off your paddle and smash the wall. Aim with the paddle's edges.",
         controls: "←→ / ad move · space launch",
         music: None,
-        ranked: true,
+        ranking: Ranking::HighestScore,
         launch: || Box::new(breakout::Breakout::new()),
     },
     GameEntry {
@@ -41,7 +41,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Beat the CPU to seven points. Every match you win, it gets faster and sharper.",
         controls: "↑↓ / ws move",
         music: None,
-        ranked: true,
+        ranking: Ranking::HighestScore,
         launch: || Box::new(pong::Pong::solo()),
     },
     GameEntry {
@@ -50,7 +50,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Two players on one keyboard. First to seven points wins.",
         controls: "P1 w s · P2 ↑ ↓",
         music: None,
-        ranked: false,
+        ranking: Ranking::Unranked,
         launch: || Box::new(pong::Pong::versus()),
     },
     GameEntry {
@@ -59,7 +59,7 @@ pub const CATALOG: &[GameEntry] = &[
         description: "Slide the tiles and merge equal numbers. Reach 2048, then keep going.",
         controls: "←↑↓→ / wasd slide",
         music: None,
-        ranked: true,
+        ranking: Ranking::HighestScore,
         launch: || Box::new(game2048::Game2048::new()),
     },
 ];

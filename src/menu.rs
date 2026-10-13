@@ -11,7 +11,7 @@ use crate::{
     audio::{Speaker, tunes},
     game::GameEntry,
     layout,
-    scores::HighScores,
+    scores::{HighScores, Ranking},
 };
 
 const TITLE: &str = "TERMINAL GAMES";
@@ -199,11 +199,11 @@ fn details_panel(item: Option<Item>, scores: &HighScores) -> Paragraph<'static> 
         Line::from(vec!["Controls  ".dark_gray(), entry.controls.into()]),
         Line::default(),
     ];
-    if entry.ranked {
-        lines.push(Line::from("High scores".yellow().bold()));
-        lines.extend(score_lines(scores.top(entry.id)));
-    } else {
+    if entry.ranking == Ranking::Unranked {
         lines.push(Line::from("Unranked mode".dark_gray().italic()));
+    } else {
+        lines.push(Line::from(entry.ranking.board_title().yellow().bold()));
+        lines.extend(score_lines(scores.top(entry.id), entry.ranking));
     }
 
     Paragraph::new(lines)
@@ -211,13 +211,13 @@ fn details_panel(item: Option<Item>, scores: &HighScores) -> Paragraph<'static> 
         .block(block.title(Line::from(format!(" {} ", entry.title)).bold()))
 }
 
-fn score_lines(board: &[u32]) -> Vec<Line<'static>> {
+fn score_lines(board: &[u32], ranking: Ranking) -> Vec<Line<'static>> {
     if board.is_empty() {
         return vec![Line::from("No scores yet".dark_gray().italic())];
     }
     board
         .iter()
         .enumerate()
-        .map(|(rank, score)| Line::from(format!("{}. {score:>6}", rank + 1)))
+        .map(|(rank, &score)| Line::from(format!("{}. {:>7}", rank + 1, ranking.format(score))))
         .collect()
 }

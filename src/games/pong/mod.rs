@@ -344,6 +344,10 @@ impl Game for Pong {
         self.winner.is_some()
     }
 
+    fn is_won(&self) -> bool {
+        matches!(self.mode, Mode::Versus) && self.winner.is_some()
+    }
+
     fn summary(&self) -> Option<String> {
         let tally = format!("{}–{}", self.left_points, self.right_points);
         match (&self.mode, self.winner?) {

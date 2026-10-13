@@ -1,6 +1,7 @@
 use std::{collections::HashMap, io, time::Duration};
 
 use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
     event::{
         KeyCode, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags,
         PushKeyboardEnhancementFlags,
@@ -59,5 +60,22 @@ impl ReleaseReporting {
 impl Drop for ReleaseReporting {
     fn drop(&mut self) {
         let _ = execute!(io::stdout(), PopKeyboardEnhancementFlags);
+    }
+}
+
+/// Captures mouse events for as long as this guard lives.
+pub struct MouseCapture;
+
+impl MouseCapture {
+    pub fn enable() -> Option<Self> {
+        execute!(io::stdout(), EnableMouseCapture)
+            .ok()
+            .map(|()| Self)
+    }
+}
+
+impl Drop for MouseCapture {
+    fn drop(&mut self) {
+        let _ = execute!(io::stdout(), DisableMouseCapture);
     }
 }

@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, MouseButton};
 use ratatui::{
     Frame,
-    layout::{Constraint, Layout, Rect, Size},
+    layout::{Constraint, Layout, Position, Rect, Size},
     style::{Style, Stylize},
     text::Line,
     widgets::{Block, BorderType, Clear, Paragraph},
@@ -13,7 +13,7 @@ use crate::{
     audio::{Music, Speaker, tunes},
     game::{Game, GameEntry},
     layout,
-    scores::HighScores,
+    scores::{HighScores, Ranking},
 };
 
 pub enum SessionAction {
@@ -23,8 +23,14 @@ pub enum SessionAction {
 
 struct Outcome {
     summary: Option<String>,
-    score: Option<u32>,
+    result: Option<String>,
     rank: Option<usize>,
+}
+
+struct Regions {
+    hud: Rect,
+    board: Rect,
+    footer: Rect,
 }
 
 /// One run of a game, wrapped with the HUD, pausing and score submission.
@@ -67,6 +73,25 @@ impl Session {
         }
     }
 
+    pub fn handle_click(
+        &mut self,
+        position: Position,
+        button: MouseButton,
+        viewport: Rect,
+        speaker: &Speaker,
+    ) {
+        if self.paused || self.is_finished() {
+            return;
+        }
+        let Ok(Regions { board, .. }) = self.regions(viewport) else {
+            return;
+        };
+        if board.contains(position) {
+            let local = Position::new(position.x - board.x, position.y - board.y);
+            self.game.handle_click(local, button, speaker);
+        }
+    }
+
     pub fn update(&mut self, elapsed: Duration, speaker: &Speaker, scores: &mut HighScores) {
         if self.paused || self.is_finished() {
             return;
@@ -81,35 +106,39 @@ impl Session {
     }
 
     pub fn render(&self, frame: &mut Frame, area: Rect, scores: &HighScores) {
-        let playfield = self.game.size();
-        let footer = self.footer();
-        let width = playfield.width.max(footer.width() as u16);
-        let size = Size::new(width, playfield.height + 2);
-        if !layout::fits(area, size) {
-            render_too_small(frame, area, size);
-            return;
-        }
-
-        let [hud_row, board_row, footer_row] =
-            layout::centered(area, size).layout(&Layout::vertical([
-                Constraint::Length(1),
-                Constraint::Length(playfield.height),
-                Constraint::Length(1),
-            ]));
-        let board = layout::centered(board_row, playfield);
-        self.render_hud(
-            frame,
-            layout::centered(hud_row, Size::new(playfield.width, 1)),
-            scores,
-        );
+        let Regions { hud, board, footer } = match self.regions(area) {
+            Ok(regions) => regions,
+            Err(needed) => return render_too_small(frame, area, needed),
+        };
+        self.render_hud(frame, hud, scores);
         self.game.render(frame, board);
-        frame.render_widget(footer, footer_row);
+        frame.render_widget(self.footer(), footer);
 
         if let Some(outcome) = &self.outcome {
             render_popup(frame, board, outcome.lines());
         } else if self.paused {
             render_popup(frame, board, paused_lines());
         }
+    }
+
+    /// Splits the screen around the game, or reports the size needed when it does not fit.
+    fn regions(&self, area: Rect) -> Result<Regions, Size> {
+        let playfield = self.game.size();
+        let width = playfield.width.max(self.footer().width() as u16);
+        let size = Size::new(width, playfield.height + 2);
+        if !layout::fits(area, size) {
+            return Err(size);
+        }
+        let [hud, board, footer] = layout::centered(area, size).layout(&Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Length(playfield.height),
+            Constraint::Length(1),
+        ]));
+        Ok(Regions {
+            hud: layout::centered(hud, Size::new(playfield.width, 1)),
+            board: layout::centered(board, playfield),
+            footer,
+        })
     }
 
     fn is_finished(&self) -> bool {
@@ -129,9 +158,10 @@ impl Session {
 
     fn finish(&mut self, speaker: &Speaker, scores: &mut HighScores) {
         self.music = None;
-        let score = self.entry.ranked.then(|| self.game.score());
-        let rank = score.and_then(|score| scores.submit(self.entry.id, score));
-        let celebrates = rank == Some(0) || !self.entry.ranked;
+        let ranking = self.entry.ranking;
+        let record = self.game.record().filter(|_| ranking != Ranking::Unranked);
+        let rank = record.and_then(|value| scores.submit(self.entry.id, ranking, value));
+        let celebrates = rank == Some(0) || self.game.is_won();
         speaker.play(if celebrates {
             &tunes::NEW_RECORD
         } else {
@@ -139,7 +169,7 @@ impl Session {
         });
         self.outcome = Some(Outcome {
             summary: self.game.summary(),
-            score,
+            result: record.map(|value| format!("{} {}", ranking.label(), ranking.format(value))),
             rank,
         });
     }
@@ -149,18 +179,22 @@ impl Session {
             Line::from(self.entry.title.to_uppercase()).green().bold(),
             area,
         );
-        if !self.entry.ranked {
+        let ranking = self.entry.ranking;
+        if ranking == Ranking::Unranked {
             return;
         }
-        let best = scores
-            .best(self.entry.id)
-            .unwrap_or(0)
-            .max(self.game.score());
+        let current = self.game.score();
+        let best = match (ranking, scores.best(self.entry.id)) {
+            (Ranking::HighestScore, best) => Some(best.unwrap_or(0).max(current)),
+            (_, best) => best,
+        };
         let stats = Line::from(vec![
-            "Score ".dark_gray(),
-            self.game.score().to_string().bold(),
+            format!("{} ", ranking.label()).dark_gray(),
+            ranking.format(current).bold(),
             "  Best ".dark_gray(),
-            best.to_string().yellow().bold(),
+            best.map_or("—".to_owned(), |best| ranking.format(best))
+                .yellow()
+                .bold(),
         ]);
         frame.render_widget(stats.right_aligned(), area);
     }
@@ -181,7 +215,7 @@ impl Outcome {
         };
         let details = [
             self.summary.clone().map(Line::from),
-            self.score.map(|score| Line::from(format!("Score {score}"))),
+            self.result.clone().map(Line::from),
             verdict.map(Line::from),
         ];
         [Line::from("GAME OVER".red().bold()), Line::default()]
