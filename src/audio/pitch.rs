@@ -1,4 +1,8 @@
 pub const C2: f32 = 65.41;
+pub const D2: f32 = 73.42;
+pub const E2: f32 = 82.41;
+pub const F2: f32 = 87.31;
+pub const G2: f32 = 98.00;
 pub const GS2: f32 = 103.83;
 pub const A2: f32 = 110.00;
 pub const B2: f32 = 123.47;

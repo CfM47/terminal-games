@@ -1,6 +1,7 @@
 mod ball;
 mod breakout;
 mod game2048;
+mod invaders;
 mod minesweeper;
 mod pong;
 mod snake;
@@ -35,6 +36,15 @@ pub const CATALOG: &[GameEntry] = &[
         music: None,
         ranking: Ranking::HighestScore,
         launch: || Box::new(breakout::Breakout::new()),
+    },
+    GameEntry {
+        id: "invaders",
+        title: "Space Invaders",
+        description: "Hold off the marching waves from behind your bunkers. Shoot the saucer for a bonus.",
+        controls: "←→ / ad move · space fire",
+        music: None,
+        ranking: Ranking::HighestScore,
+        launch: || Box::new(invaders::Invaders::new()),
     },
     GameEntry {
         id: "pong",
