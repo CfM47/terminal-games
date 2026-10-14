@@ -9,33 +9,54 @@ const fn eighths(frequency: f32, count: u32) -> Note {
     Note::tone(frequency, count * EIGHTH)
 }
 
+const fn silence(count: u32) -> Note {
+    Note::rest(count * EIGHTH)
+}
+
 #[rustfmt::skip]
 const MELODY: &[Note] = &[
     eighths(E5, 2), eighths(B4, 1), eighths(C5, 1), eighths(D5, 2), eighths(C5, 1), eighths(B4, 1),
     eighths(A4, 2), eighths(A4, 1), eighths(C5, 1), eighths(E5, 2), eighths(D5, 1), eighths(C5, 1),
-    eighths(B4, 3), eighths(C5, 1), eighths(D5, 2), eighths(E5, 2),
-    eighths(C5, 2), eighths(A4, 2), eighths(A4, 4),
-    eighths(D5, 3), eighths(F5, 1), eighths(A5, 2), eighths(G5, 1), eighths(F5, 1),
-    eighths(E5, 3), eighths(C5, 1), eighths(E5, 2), eighths(D5, 1), eighths(C5, 1),
     eighths(B4, 2), eighths(B4, 1), eighths(C5, 1), eighths(D5, 2), eighths(E5, 2),
-    eighths(C5, 2), eighths(A4, 2), eighths(A4, 4),
+    eighths(C5, 2), eighths(A4, 2), eighths(A4, 2), eighths(B3, 1), eighths(C4, 1),
+    silence(2), eighths(D5, 2), eighths(F5, 1), eighths(A5, 2), silence(1),
+    eighths(G5, 1), eighths(F5, 1), eighths(E5, 4), eighths(C5, 1), eighths(E5, 3),
+    eighths(D5, 1), eighths(C5, 1), eighths(B4, 3), eighths(C5, 1),
+    eighths(D5, 2), eighths(E5, 2), eighths(C5, 2), eighths(A4, 2),
+    eighths(A4, 2), silence(2),
+    eighths(E5, 4), eighths(C5, 4),
+    eighths(D5, 4), eighths(B4, 4),
+    eighths(C5, 4), eighths(A4, 4),
+    eighths(GS4, 4), eighths(B4, 4),
+    eighths(E5, 4), eighths(C5, 4),
+    eighths(D5, 4), eighths(B4, 4),
+    eighths(C5, 2), eighths(E5, 2), eighths(A5, 4),
+    eighths(GS5, 8),
 ];
 
 #[rustfmt::skip]
 const BASS: &[Note] = &[
-    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(E3, 1), eighths(E4, 1), eighths(E3, 1), eighths(E4, 1), eighths(E3, 1), eighths(E4, 1), eighths(E3, 1), eighths(E4, 1),
     eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
-    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(B2, 1), eighths(C3, 1),
+    eighths(D3, 1), eighths(D4, 1), eighths(D3, 1), eighths(D4, 1), eighths(D3, 1), eighths(D4, 1), eighths(D3, 1), eighths(D4, 1),
+    eighths(D3, 1), eighths(D4, 1), eighths(C3, 1), eighths(C4, 1), eighths(C3, 1), eighths(C4, 1), eighths(C3, 1), eighths(C4, 1),
+    eighths(C3, 1), eighths(C4, 1), eighths(C3, 1), eighths(C4, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
     eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
-    eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1), eighths(D2, 1), eighths(D3, 1),
-    eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1), eighths(C2, 1), eighths(C3, 1),
-    eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1), eighths(E2, 1), eighths(E3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
     eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
+    eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1), eighths(A2, 1), eighths(A3, 1),
+    eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1), eighths(GS2, 1), eighths(GS3, 1),
 ];
 
 #[rustfmt::skip]
 const DRUMS: &[Note] = &[
-    eighths(KICK, 1), eighths(HAT, 1), eighths(SNARE, 1), eighths(HAT, 1),
     eighths(KICK, 1), eighths(HAT, 1), eighths(SNARE, 1), eighths(HAT, 1),
 ];
 
